@@ -1,1 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#15803d" />
+  <title>Maa Annapurna Kirana & General Store</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="images/icon-192.png" />
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, 'Noto Sans Devanagari', sans-serif; }
+    body { margin: 0; background: #f1f5f9; color: #0f172a; padding-bottom: 90px; top: 0 !important; }
+    .app-shell { max-width: 540px; margin: 0 auto; min-height: 100vh; background: #f8fafc; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+
+    /* Hide Google Translate default top banner */
+    .goog-te-banner-frame, .skiptranslate { display: none !important; }
+    #google_translate_element { display: none; }
+
+    header { background: #15803d; color: #fff; padding: 14px 16px; position: sticky; top: 0; z-index: 20; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    header h1 { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.25; }
+    header p { margin: 2px 0 0; font-size: 12px; opacity: 0.9; }
+    .header-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+    .lang-btn { background: #ffffff; color: #14532d; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+    .install-btn { background: #dcfce7; color: #14532d; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .search-box { margin-top: 10px; width: 100%; padding: 9px 12px; border-radius: 8px; border: none; font-size: 14px; outline: none; }
+
+    .tabs { display: flex; gap: 8px; overflow-x: auto; padding: 10px 14px; background: #fff; border-bottom: 1px solid #e2e8f0; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { border: 1px solid #cbd5e1; background: #fff; color: #334155; padding: 6px 13px; border-radius: 20px; font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; }
+    .tab.active { background: #15803d; color: #fff; border-color: #15803d; }
+
+    .grid { display: flex; flex-direction: column; gap: 10px; padding: 12px; }
+    .card { background: #fff; border-radius: 12px; padding: 12px; border: 1px solid #e2e8f0; display: flex; gap: 12px; align-items: center; }
+    .thumb { width: 64px; height: 64px; border-radius: 8px; object-fit: cover; background: #e2e8f0; flex-shrink: 0; }
+    .info { flex: 1; min-width: 0; }
+    .info h3 { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #1e293b; }
+    .cat-tag { font-size: 11px; color: #64748b; margin-bottom: 6px; display: block; }
+
+    select { width: 100%; max-width: 215px; padding: 6px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; color: #0f172a; }
+
+    .loose-rate { font-size: 12px; color: #15803d; font-weight: 700; margin-bottom: 6px; }
+    .loose-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .loose-input { width: 92px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #f8fafc; }
+    .loose-sep { font-size: 11px; color: #64748b; font-weight: 600; }
+
+    .add-btn { background: #15803d; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; flex-shrink: 0; }
+    .add-btn:active { transform: scale(0.97); }
+
+    .cart-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 540px; background: #0f172a; color: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 30; }
+    .view-cart-btn { background: #25d366; color: #052e16; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; }
+
+    .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 40; justify-content: center; align-items: flex-end; }
+    .modal-backdrop.open { display: flex; }
+    .modal { background: #fff; width: 100%; max-width: 540px; border-radius: 16px 16px 0 0; padding: 18px; max-height: 85vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 12px; }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; gap: 8px; }
+    .qty-controls { display: flex; align-items: center; gap: 8px; }
+    .qty-btn { width: 26px; height: 26px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; font-weight: 700; cursor: pointer; }
+    .delivery-note { margin-top: 8px; padding: 8px 10px; background: #fefce8; border: 1px solid #fde047; border-radius: 8px; font-size: 12px; color: #854d0e; }
+    .field { width: 100%; padding: 9px 10px; margin-top: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div id="google_translate_element"></div>
+
+<div class="app-shell">
+  <header>
+    <div class="header-top">
+      <div>
+        <h1 id="storeHeading">Maa Annapurna Kirana & General Store</h1>
+        <p id="storeSubheading">Ward 9, Ramnagar Bankat • +91 7478145664</p>
+      </div>
+      <div class="header-actions">
+        <button class="lang-btn" id="langBtn" onclick="toggleGoogleTranslate()">हिंदी</button>
+        <button class="install-btn" id="installBtn" onclick="triggerInstall()">+ Save App</button>
+      </div>
+    </div>
+    <input type="text" id="searchInput" class="search-box" placeholder="Search rice, dal, biscuit, soap, sooji..." oninput="renderProducts()" />
+  </header>
+
+  <div class="tabs" id="categoryTabs"></div>
+  <div class="grid" id="productList"></div>
+</div>
+
+<div class="cart-bar">
+  <div>
+    <div style="font-size:12px;opacity:0.8">Items in Cart: <span id="cartCount">0</span></div>
+    <div style="font-size:16px;font-weight:700">Items Total: ₹<span id="cartTotal">0</span></div>
+  </div>
+  <button class="view-cart-btn" onclick="openCart()">Review & Order →</button>
+</div>
+
+<div class="modal-backdrop" id="cartModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 style="margin:0;font-size:17px;">Your Order Summary</h2>
+      <button onclick="closeCart()" style="border:none;background:none;font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div id="cartItemsList"></div>
+    <div style="margin-top:12px;font-weight:700;font-size:16px;text-align:right;">
+      Items Subtotal: ₹<span id="modalTotal">0</span>
+    </div>
+
+    <select id="orderMode" class="field" style="max-width:100%;margin-top:12px;" onchange="toggleDeliveryNote()">
+      <option value="Home Delivery (+₹10–₹15 delivery charge)">Home Delivery (+₹10–₹15 delivery charge)</option>
+      <option value="Store Pickup (No delivery charge)">Store Pickup at Counter (Free)</option>
+    </select>
+    <div class="delivery-note" id="deliveryNoteBox">
+      Note: ₹10–₹15 delivery charge (based on distance in Ramnagar Bankat) will be added to your final Paytm payment link on WhatsApp.
+    </div>
+
+    <input type="text" id="custName" class="field" placeholder="Your Name" />
+    <input type="text" id="custAddress" class="field" placeholder="Village / Ward / Landmark" />
+
+    <button class="view-cart-btn" style="width:100%;margin-top:14px;padding:12px;" onclick="sendWhatsAppOrder()">
+      Send Order on WhatsApp
+    </button>
+  </div>
+</div>
+
+<script src="products.js"></script>
+<script>
+  const CATALOG = typeof PRODUCTS !== "undefined" ? PRODUCTS : [];
+  const CONFIG = typeof STORE_CONFIG !== "undefined"
+    ? STORE_CONFIG
+    : {
+        whatsappNumber: "917478145664",
+        storeName: "Maa Annapurna Kirana & General Store",
+        locationSubtitle: "Ward 9, Ramnagar Bankat • +91 7478145664"
+      };
+
+  document.getElementById("storeHeading").textContent = CONFIG.storeName;
+  document.getElementById("storeSubheading").textContent = CONFIG.locationSubtitle;
+
+  let activeCategory = "All";
+  const cart = {};
+  let deferredPrompt = null;
+  let isHindiActive = false;
+
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement(
+      { pageLanguage: "en", includedLanguages: "en,hi", autoDisplay: false },
+      "google_translate_element"
+    );
+  }
+
+  function applyGoogleLang(targetLang, retries = 15) {
+    const combo = document.querySelector(".goog-te-combo");
+    if (combo) {
+      combo.value = targetLang;
+      combo.dispatchEvent(new Event("change"));
+      return true;
+    }
+    if (retries > 0) {
+      setTimeout(() => applyGoogleLang(targetLang, retries - 1), 200);
+    }
+    return false;
+  }
+
+  function toggleGoogleTranslate() {
+    const nextHindi = !isHindiActive;
+    const targetLang = nextHindi ? "hi" : "en";
+    const ok = applyGoogleLang(targetLang);
+
+    if (!nextHindi && !ok) {
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      window.location.reload();
+      return;
+    }
+
+    isHindiActive = nextHindi;
+    document.getElementById("langBtn").textContent = isHindiActive ? "EN" : "हिंदी";
+  }
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+  });
+
+  function triggerInstall() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt = null;
+    } else {
+      alert("To save on your Home Screen:\n• Android Chrome: Tap ⋮ (top-right) → 'Add to Home screen' or 'Install app'.\n• iPhone Safari: Tap Share (↑) → 'Add to Home Screen'.");
+    }
+  }
+
+  function toggleDeliveryNote() {
+    const isDelivery = document.getElementById("orderMode").value.startsWith("Home Delivery");
+    document.getElementById("deliveryNoteBox").style.display = isDelivery ? "block" : "none";
+  }
+
+  function renderTabs() {
+    const categories = ["All", ...new Set(CATALOG.map(p => p.category))];
+    document.getElementById("categoryTabs").innerHTML = categories.map(cat =>
+      `<button class="tab ${cat === activeCategory ? 'active' : ''}" onclick="setCategory('${cat.replace(/'/g, "\\'")}')">${cat}</button>`
+    ).join("");
+  }
+
+  function setCategory(cat) {
+    activeCategory = cat;
+    renderTabs();
+    renderProducts();
+  }
+
+  function renderProducts() {
+    const q = document.getElementById("searchInput").value.trim().toLowerCase();
+    const filtered = CATALOG.filter(p => {
+      const matchCat = activeCategory === "All" || p.category === activeCategory;
+      const matchSearch = p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q);
+      return matchCat && matchSearch;
+    });
+
+    document.getElementById("productList").innerHTML = filtered.map((p) => {
+      const realIdx = CATALOG.indexOf(p);
+      const controlsHtml = p.loose
+        ? `
+          <div class="loose-rate">Loose Rate: ₹${p.pricePerKg}/kg</div>
+          <div class="loose-row">
+            <input type="number" id="grams-${realIdx}" class="loose-input" placeholder="Grams (350)" min="50" step="50"
+              oninput="syncLoose(${realIdx}, ${p.pricePerKg}, 'grams')" />
+            <span class="loose-sep">or</span>
+            <input type="number" id="rupees-${realIdx}" class="loose-input" placeholder="₹ Amt (30)" min="5"
+              oninput="syncLoose(${realIdx}, ${p.pricePerKg}, 'rupees')" />
+          </div>
+        `
+        : `
+          <select id="var-${realIdx}">
+            ${p.variants.map((v, vIdx) => `<option value="${vIdx}">${v.size} — ₹${v.price}</option>`).join("")}
+          </select>
+        `;
+
+      const btnAction = p.loose ? `addLooseToCart(${realIdx})` : `addPackedToCart(${realIdx})`;
+
+      return `
+        <div class="card">
+          <img class="thumb" src="${p.image || ''}" alt="${p.name}" loading="lazy" onerror="this.style.visibility='hidden'" />
+          <div class="info">
+            <h3>${p.name}</h3>
+            <span class="cat-tag">${p.category}</span>
+            ${controlsHtml}
+          </div>
+          <button class="add-btn" onclick="${btnAction}">+ Add</button>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function syncLoose(idx, pricePerKg, field) {
+    const gEl = document.getElementById(`grams-${idx}`);
+    const rEl = document.getElementById(`rupees-${idx}`);
+    if (field === "grams") {
+      const g = parseFloat(gEl.value) || 0;
+      rEl.value = g > 0 ? Math.round((g / 1000) * pricePerKg) : "";
+    } else {
+      const r = parseFloat(rEl.value) || 0;
+      gEl.value = r > 0 ? Math.round((r / pricePerKg) * 1000) : "";
+    }
+  }
+
+  function addPackedToCart(idx) {
+    const p = CATALOG[idx];
+    const vIdx = document.getElementById(`var-${idx}`).value;
+    const v = p.variants[vIdx];
+    const key = `${p.name} (${v.size})`;
+    if (!cart[key]) cart[key] = { qty: 0, price: v.price };
+    cart[key].qty += 1;
+    updateCartBar();
+  }
+
+  function addLooseToCart(idx) {
+    const p = CATALOG[idx];
+    const grams = parseInt(document.getElementById(`grams-${idx}`).value, 10) || 0;
+    const rupees = parseInt(document.getElementById(`rupees-${idx}`).value, 10) || 0;
+    if (grams < 50 || rupees < 5) {
+      return alert("Please enter at least 50 grams or ₹5 for loose items.");
+    }
+    const key = `${p.name} — ${grams} g (₹${rupees} pack)`;
+    if (!cart[key]) cart[key] = { qty: 0, price: rupees };
+    cart[key].qty += 1;
+    document.getElementById(`grams-${idx}`).value = "";
+    document.getElementById(`rupees-${idx}`).value = "";
+    updateCartBar();
+  }
+
+  function updateCartBar() {
+    let count = 0, total = 0;
+    Object.values(cart).forEach(item => { count += item.qty; total += item.qty * item.price; });
+    document.getElementById("cartCount").textContent = count;
+    document.getElementById("cartTotal").textContent = total;
+    document.getElementById("modalTotal").textContent = total;
+  }
+
+  function openCart() {
+    const entries = Object.entries(cart);
+    if (!entries.length) return alert("Your cart is empty. Add items first!");
+    document.getElementById("cartItemsList").innerHTML = entries.map(([name, item]) => `
+      <div class="cart-item">
+        <div style="flex:1;">
+          <div style="font-weight:600;">${name}</div>
+          <div style="font-size:12px;color:#64748b;">₹${item.price} each</div>
+        </div>
+        <div class="qty-controls">
+          <button class="qty-btn" onclick="changeQty('${name.replace(/'/g, "\\'")}', -1)">−</button>
+          <span>${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${name.replace(/'/g, "\\'")}', 1)">+</button>
+        </div>
+      </div>
+    `).join("");
+    toggleDeliveryNote();
+    document.getElementById("cartModal").classList.add("open");
+  }
+
+  function closeCart() {
+    document.getElementById("cartModal").classList.remove("open");
+  }
+
+  function changeQty(key, delta) {
+    if (!cart[key]) return;
+    cart[key].qty += delta;
+    if (cart[key].qty <= 0) delete cart[key];
+    updateCartBar();
+    if (!Object.keys(cart).length) closeCart();
+    else openCart();
+  }
+
+  function sendWhatsAppOrder() {
+    const entries = Object.entries(cart);
+    if (!entries.length) return;
+    const mode = document.getElementById("orderMode").value;
+    const isDelivery = mode.startsWith("Home Delivery");
+    const name = document.getElementById("custName").value.trim() || "Customer";
+    const addr = document.getElementById("custAddress").value.trim() || "Not specified";
+
+    let lines = [
+      `*New Order — ${CONFIG.storeName}*`,
+      `Customer: ${name}`,
+      `Mode: ${mode}`,
+      `Address: ${addr}`,
+      "",
+      "*Items:*"
+    ];
+    let total = 0;
+    entries.forEach(([itemName, item], i) => {
+      const sub = item.qty * item.price;
+      total += sub;
+      lines.push(`${i + 1}. ${itemName} x ${item.qty} = ₹${sub}`);
+    });
+    lines.push("", `*Items Subtotal: ₹${total}*`);
+    if (isDelivery) {
+      lines.push("Delivery Charge: ₹10–₹15 (to be added in final bill)");
+    }
+    lines.push("Please confirm stock & share the Paytm payment link.");
+
+    window.open(`https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank");
+  }
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+
+  renderTabs();
+  renderProducts();
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>
 
