@@ -56,10 +56,33 @@
     header { background: #15803d; color: #fff; padding: 14px 16px; position: sticky; top: 0; z-index: 20; }
     .header-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     .header-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .header-logo { width: 38px; height: 38px; border-radius: 8px; object-fit: cover; background: #ffffff; flex-shrink: 0; }
-    
-    header h1 { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.25; }
-    header p { margin: 2px 0 0; font-size: 12px; opacity: 0.9; }
+    .header-logo-wrap {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: #ffffff;
+      border: 2px solid #bbf7d0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .header-logo { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .header-logo-fallback {
+      display: none;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #166534, #15803d);
+      color: #fef08a;
+      font-weight: 900;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+      align-items: center;
+      justify-content: center;
+    }
+    header h1 { margin: 0; font-size: 15px; font-weight: 700; line-height: 1.25; }
+    header p { margin: 2px 0 0; font-size: 12px; opacity: 0.92; }
     .header-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
     .lang-btn { background: #ffffff; color: #14532d; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
     .install-btn { background: #dcfce7; color: #14532d; border: none; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
@@ -119,14 +142,22 @@
 
   <header>
     <div class="header-top">
-            <div class="header-brand">
-        <img class="header-logo" src="images/icon-192.png" alt="Maa Annapurna Logo" onerror="this.style.display='none'" />
+      <div class="header-brand">
+        <div class="header-logo-wrap">
+          <img
+            id="storeLogoImg"
+            class="header-logo"
+            src="images/icon-192.png"
+            alt="Maa Annapurna Logo"
+            onerror="handleLogoFallback(this)"
+          />
+          <div id="storeLogoFallback" class="header-logo-fallback">MA</div>
+        </div>
         <div>
           <h1 id="storeHeading">Maa Annapurna Kirana & General Store</h1>
           <p id="storeSubheading">+91 7478145664</p>
         </div>
       </div>
-
       <div class="header-actions">
         <button class="lang-btn" id="langBtn" onclick="toggleGoogleTranslate()">हिंदी</button>
         <button class="install-btn" id="installBtn" onclick="triggerInstall()">+ Save App</button>
@@ -194,6 +225,16 @@
   let deferredPrompt = null;
   let isHindiActive = false;
 
+  function handleLogoFallback(imgEl) {
+    if (!imgEl.dataset.triedRoot) {
+      imgEl.dataset.triedRoot = "1";
+      imgEl.src = "icon-192.png";
+    } else {
+      imgEl.style.display = "none";
+      document.getElementById("storeLogoFallback").style.display = "flex";
+    }
+  }
+
   function isStandaloneApp() {
     return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
   }
@@ -253,6 +294,13 @@
   window.addEventListener("appinstalled", () => {
     deferredPrompt = null;
     document.getElementById("autoInstallBanner").classList.remove("show");
+  });
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile && !isStandaloneApp()) {
+      showAutoInstallBanner();
+    }
   });
 
   function triggerInstall() {
