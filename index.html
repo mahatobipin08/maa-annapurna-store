@@ -9,12 +9,49 @@
   <link rel="apple-touch-icon" href="images/icon-192.png" />
   <style>
     * { box-sizing: border-box; font-family: system-ui, -apple-system, 'Noto Sans Devanagari', sans-serif; }
-    body { margin: 0; background: #f1f5f9; color: #0f172a; padding-bottom: 90px; top: 0 !important; }
+    body { margin: 0; background: #f1f5f9; color: #0f172a; padding-bottom: 96px; top: 0 !important; }
     .app-shell { max-width: 540px; margin: 0 auto; min-height: 100vh; background: #f8fafc; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
 
     /* Hide Google Translate default top banner */
     .goog-te-banner-frame, .skiptranslate { display: none !important; }
     #google_translate_element { display: none; }
+
+    /* Auto-install prompt banner */
+    .auto-install-banner {
+      display: none;
+      background: #064e3b;
+      color: #ecfdf5;
+      padding: 10px 14px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid #047857;
+      font-size: 13px;
+    }
+    .auto-install-banner.show { display: flex; }
+    .auto-install-text { flex: 1; line-height: 1.3; }
+    .auto-install-text strong { display: block; font-size: 13px; color: #ffffff; }
+    .auto-install-text span { font-size: 11px; color: #a7f3d0; }
+    .auto-install-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .auto-install-btn {
+      background: #22c55e;
+      color: #052e16;
+      border: none;
+      padding: 7px 12px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .auto-dismiss-btn {
+      background: transparent;
+      color: #d1fae5;
+      border: none;
+      font-size: 16px;
+      padding: 4px 6px;
+      cursor: pointer;
+      line-height: 1;
+    }
 
     header { background: #15803d; color: #fff; padding: 14px 16px; position: sticky; top: 0; z-index: 20; }
     .header-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -66,11 +103,22 @@
 <div id="google_translate_element"></div>
 
 <div class="app-shell">
+  <div class="auto-install-banner" id="autoInstallBanner" role="region" aria-label="Install Store App">
+    <div class="auto-install-text">
+      <strong>Install Store App</strong>
+      <span>Open full-screen from Home Screen</span>
+    </div>
+    <div class="auto-install-actions">
+      <button class="auto-install-btn" onclick="triggerInstall()">Install</button>
+      <button class="auto-dismiss-btn" onclick="dismissInstallBanner()" aria-label="Dismiss">✕</button>
+    </div>
+  </div>
+
   <header>
     <div class="header-top">
       <div>
         <h1 id="storeHeading">Maa Annapurna Kirana & General Store</h1>
-        <p id="storeSubheading">Ward 9, Ramnagar Bankat • +91 7478145664</p>
+        <p id="storeSubheading">+91 7478145664</p>
       </div>
       <div class="header-actions">
         <button class="lang-btn" id="langBtn" onclick="toggleGoogleTranslate()">हिंदी</button>
@@ -108,7 +156,7 @@
       <option value="Store Pickup (No delivery charge)">Store Pickup at Counter (Free)</option>
     </select>
     <div class="delivery-note" id="deliveryNoteBox">
-      Note: ₹10–₹15 delivery charge (based on distance in Ramnagar Bankat) will be added to your final Paytm payment link on WhatsApp.
+      Note: ₹10–₹15 delivery charge (based on distance) will be added to your final Paytm payment link on WhatsApp.
     </div>
 
     <input type="text" id="custName" class="field" placeholder="Your Name" />
@@ -128,7 +176,7 @@
     : {
         whatsappNumber: "917478145664",
         storeName: "Maa Annapurna Kirana & General Store",
-        locationSubtitle: "Ward 9, Ramnagar Bankat • +91 7478145664"
+        locationSubtitle: "+91 7478145664"
       };
 
   document.getElementById("storeHeading").textContent = CONFIG.storeName;
@@ -138,6 +186,21 @@
   const cart = {};
   let deferredPrompt = null;
   let isHindiActive = false;
+
+  function isStandaloneApp() {
+    return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  }
+
+  function showAutoInstallBanner() {
+    if (isStandaloneApp()) return;
+    if (sessionStorage.getItem("dismissedInstallBanner") === "1") return;
+    document.getElementById("autoInstallBanner").classList.add("show");
+  }
+
+  function dismissInstallBanner() {
+    sessionStorage.setItem("dismissedInstallBanner", "1");
+    document.getElementById("autoInstallBanner").classList.remove("show");
+  }
 
   function googleTranslateElementInit() {
     new google.translate.TranslateElement(
@@ -177,14 +240,23 @@
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
+    showAutoInstallBanner();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredPrompt = null;
+    document.getElementById("autoInstallBanner").classList.remove("show");
   });
 
   function triggerInstall() {
     if (deferredPrompt) {
       deferredPrompt.prompt();
-      deferredPrompt = null;
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        document.getElementById("autoInstallBanner").classList.remove("show");
+      });
     } else {
-      alert("To save on your Home Screen:\n• Android Chrome: Tap ⋮ (top-right) → 'Add to Home screen' or 'Install app'.\n• iPhone Safari: Tap Share (↑) → 'Add to Home Screen'.");
+      alert("To open full-screen without the browser address bar:\n• Android Chrome: Tap ⋮ (top-right) → 'Add to Home screen' or 'Install app'.\n• iPhone Safari: Tap Share (↑) → 'Add to Home Screen'.");
     }
   }
 
@@ -221,151 +293,7 @@
           <div class="loose-rate">Loose Rate: ₹${p.pricePerKg}/kg</div>
           <div class="loose-row">
             <input type="number" id="grams-${realIdx}" class="loose-input" placeholder="Grams (350)" min="50" step="50"
-              oninput="syncLoose(${realIdx}, ${p.pricePerKg}, 'grams')" />
+              oninput="syncLoose(${realIdx},${p.pricePerKg}, 'grams')" />
             <span class="loose-sep">or</span>
             <input type="number" id="rupees-${realIdx}" class="loose-input" placeholder="₹ Amt (30)" min="5"
-              oninput="syncLoose(${realIdx}, ${p.pricePerKg}, 'rupees')" />
-          </div>
-        `
-        : `
-          <select id="var-${realIdx}">
-            ${p.variants.map((v, vIdx) => `<option value="${vIdx}">${v.size} — ₹${v.price}</option>`).join("")}
-          </select>
-        `;
-
-      const btnAction = p.loose ? `addLooseToCart(${realIdx})` : `addPackedToCart(${realIdx})`;
-
-      return `
-        <div class="card">
-          <img class="thumb" src="${p.image || ''}" alt="${p.name}" loading="lazy" onerror="this.style.visibility='hidden'" />
-          <div class="info">
-            <h3>${p.name}</h3>
-            <span class="cat-tag">${p.category}</span>
-            ${controlsHtml}
-          </div>
-          <button class="add-btn" onclick="${btnAction}">+ Add</button>
-        </div>
-      `;
-    }).join("");
-  }
-
-  function syncLoose(idx, pricePerKg, field) {
-    const gEl = document.getElementById(`grams-${idx}`);
-    const rEl = document.getElementById(`rupees-${idx}`);
-    if (field === "grams") {
-      const g = parseFloat(gEl.value) || 0;
-      rEl.value = g > 0 ? Math.round((g / 1000) * pricePerKg) : "";
-    } else {
-      const r = parseFloat(rEl.value) || 0;
-      gEl.value = r > 0 ? Math.round((r / pricePerKg) * 1000) : "";
-    }
-  }
-
-  function addPackedToCart(idx) {
-    const p = CATALOG[idx];
-    const vIdx = document.getElementById(`var-${idx}`).value;
-    const v = p.variants[vIdx];
-    const key = `${p.name} (${v.size})`;
-    if (!cart[key]) cart[key] = { qty: 0, price: v.price };
-    cart[key].qty += 1;
-    updateCartBar();
-  }
-
-  function addLooseToCart(idx) {
-    const p = CATALOG[idx];
-    const grams = parseInt(document.getElementById(`grams-${idx}`).value, 10) || 0;
-    const rupees = parseInt(document.getElementById(`rupees-${idx}`).value, 10) || 0;
-    if (grams < 50 || rupees < 5) {
-      return alert("Please enter at least 50 grams or ₹5 for loose items.");
-    }
-    const key = `${p.name} — ${grams} g (₹${rupees} pack)`;
-    if (!cart[key]) cart[key] = { qty: 0, price: rupees };
-    cart[key].qty += 1;
-    document.getElementById(`grams-${idx}`).value = "";
-    document.getElementById(`rupees-${idx}`).value = "";
-    updateCartBar();
-  }
-
-  function updateCartBar() {
-    let count = 0, total = 0;
-    Object.values(cart).forEach(item => { count += item.qty; total += item.qty * item.price; });
-    document.getElementById("cartCount").textContent = count;
-    document.getElementById("cartTotal").textContent = total;
-    document.getElementById("modalTotal").textContent = total;
-  }
-
-  function openCart() {
-    const entries = Object.entries(cart);
-    if (!entries.length) return alert("Your cart is empty. Add items first!");
-    document.getElementById("cartItemsList").innerHTML = entries.map(([name, item]) => `
-      <div class="cart-item">
-        <div style="flex:1;">
-          <div style="font-weight:600;">${name}</div>
-          <div style="font-size:12px;color:#64748b;">₹${item.price} each</div>
-        </div>
-        <div class="qty-controls">
-          <button class="qty-btn" onclick="changeQty('${name.replace(/'/g, "\\'")}', -1)">−</button>
-          <span>${item.qty}</span>
-          <button class="qty-btn" onclick="changeQty('${name.replace(/'/g, "\\'")}', 1)">+</button>
-        </div>
-      </div>
-    `).join("");
-    toggleDeliveryNote();
-    document.getElementById("cartModal").classList.add("open");
-  }
-
-  function closeCart() {
-    document.getElementById("cartModal").classList.remove("open");
-  }
-
-  function changeQty(key, delta) {
-    if (!cart[key]) return;
-    cart[key].qty += delta;
-    if (cart[key].qty <= 0) delete cart[key];
-    updateCartBar();
-    if (!Object.keys(cart).length) closeCart();
-    else openCart();
-  }
-
-  function sendWhatsAppOrder() {
-    const entries = Object.entries(cart);
-    if (!entries.length) return;
-    const mode = document.getElementById("orderMode").value;
-    const isDelivery = mode.startsWith("Home Delivery");
-    const name = document.getElementById("custName").value.trim() || "Customer";
-    const addr = document.getElementById("custAddress").value.trim() || "Not specified";
-
-    let lines = [
-      `*New Order — ${CONFIG.storeName}*`,
-      `Customer: ${name}`,
-      `Mode: ${mode}`,
-      `Address: ${addr}`,
-      "",
-      "*Items:*"
-    ];
-    let total = 0;
-    entries.forEach(([itemName, item], i) => {
-      const sub = item.qty * item.price;
-      total += sub;
-      lines.push(`${i + 1}. ${itemName} x ${item.qty} = ₹${sub}`);
-    });
-    lines.push("", `*Items Subtotal: ₹${total}*`);
-    if (isDelivery) {
-      lines.push("Delivery Charge: ₹10–₹15 (to be added in final bill)");
-    }
-    lines.push("Please confirm stock & share the Paytm payment link.");
-
-    window.open(`https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(lines.join("\n"))}`, "_blank");
-  }
-
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js");
-  }
-
-  renderTabs();
-  renderProducts();
-</script>
-<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-</body>
-</html>
-
+              oninput="syncLoose(${real
