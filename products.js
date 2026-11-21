@@ -68,7 +68,7 @@ const PRODUCTS = [
     ]
   },
   {
-    name: "2in1",
+    name: <span class="notranslate" translate="no">2 in 1</span>`
     category: "Packaged Foods",
     image: "images/2in1.jpeg",
     variants: [
