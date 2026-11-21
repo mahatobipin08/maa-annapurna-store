@@ -68,6 +68,14 @@ const PRODUCTS = [
     ]
   },
   {
+    name: "2in1",
+    category: "Packaged Foods",
+    image: "images/2in1.jpeg",
+    variants: [
+      { size: "Small Pack", price: 10 }
+    ]
+  },
+  {
     name: "Cream / Marie Biscuit",
     category: "Packaged Foods",
     image: "images/cream-biscuit.jpg",
